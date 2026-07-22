@@ -169,8 +169,38 @@ npm run dev
 
 ## Тесты и стиль кода
 
-```bash
+Тесты загружают дамп схемы MySQL, поэтому необходимы запущенный MySQL/MariaDB и доступная в консоли команда `mysql`. Всегда используйте отдельную пустую тестовую базу: Laravel может полностью очистить все таблицы в выбранной базе.
+
+Для Windows с XAMPP:
+
+1. Создайте в phpMyAdmin пустую базу `voice2api_testing`.
+2. Создайте локальный файл окружения, если его ещё нет:
+
+```powershell
+Copy-Item .env.example .env
+php artisan key:generate
+```
+
+3. Настройте текущий сеанс PowerShell и запустите тесты:
+
+```powershell
+$env:Path = "C:\xampp\mysql\bin;$env:Path"
+$env:DB_CONNECTION = "mysql"
+$env:DB_HOST = "127.0.0.1"
+$env:DB_PORT = "3306"
+$env:DB_DATABASE = "voice2api_testing"
+$env:DB_USERNAME = "root"
+$env:DB_PASSWORD = ""
+
+php artisan config:clear
 php artisan test
+```
+
+Если MySQL установлен в другом месте или защищён паролем, измените путь и данные подключения. Успешный запуск сейчас показывает `8 passed (18 assertions)`. Тесты используют смоделированные ответы провайдеров и не требуют действующих реквизитов Phonet или других сервисов телефонии.
+
+Проверка стиля запускается отдельно:
+
+```bash
 php vendor/bin/pint --test
 ```
 
