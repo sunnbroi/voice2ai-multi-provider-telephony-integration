@@ -1,61 +1,186 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Voice2AI — Multi-Provider Telephony Integration
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Laravel application that aggregates calls from multiple cloud telephony providers, stores call metadata and recordings in one place, analyzes conversations with OpenAI, and sends actionable notifications to Telegram.
 
-## About Laravel
+The project solves a practical integration problem: Binotel, Zadarma, Unitalk, and Phonet expose different authentication methods, payloads, call statuses, and recording formats. Voice2AI normalizes those differences behind provider-specific services and a shared processing workflow.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## What the application does
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Imports incoming and outgoing calls from four telephony providers.
+- Normalizes provider payloads into a shared `Call` model.
+- Prevents duplicate calls using the integration and external call ID.
+- Downloads and stores call recordings.
+- Transcribes answered calls with OpenAI Whisper.
+- Creates short call summaries and detects potentially conflicting conversations.
+- Classifies leads, identifies new clients, and assigns tags and an interest score.
+- Sends queued notifications for answered and missed calls to Telegram.
+- Provides an authenticated dashboard with call filters, playback, listened status, and starred calls.
+- Manages integrations, notification settings, tariffs, payment details, and billing-related workflows.
+- Runs provider synchronization and maintenance tasks through Laravel Scheduler.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Processing flow
 
-## Learning Laravel
+```mermaid
+flowchart TD
+    A["Telephony provider APIs"] --> B["Scheduled provider commands"]
+    B --> C["Provider-specific integration services"]
+    C --> D["Normalized calls and recordings"]
+    D --> E["OpenAI transcription and analysis"]
+    D --> F["Web dashboard"]
+    E --> G["Queued Telegram notifications"]
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Each active integration keeps its own synchronization cursor in `prev_timestamp`. Provider-specific services fetch only the relevant time window, map remote fields to the common domain model, save recordings, and advance the cursor after processing.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Supported providers
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+| Provider | Call history | Recordings | Authentication |
+|---|---:|---:|---|
+| Binotel | Yes | Yes, including pending recordings | API key and secret |
+| Zadarma | Yes | Yes | Signed API requests |
+| Unitalk | Yes | Yes | Bearer token |
+| Phonet | Yes, with pagination | Yes | API authorization with session cookies |
 
-## Laravel Sponsors
+## Tech stack
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+- PHP 8.2+
+- Laravel 12
+- MySQL / MariaDB
+- Laravel Queues with the database driver
+- Laravel Scheduler
+- OpenAI API (`whisper-1` and GPT models)
+- Telegram Bot API
+- Blade, Tailwind CSS, Vite, and JavaScript
+- PHPUnit
+- Python helper for rich Telegram call notifications
 
-### Premium Partners
+## Project structure
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development/)**
-- **[Active Logic](https://activelogic.com)**
+```text
+app/
+├── Console/Commands/              Provider sync and maintenance commands
+├── DTO/IntegrationProcess/        Shared integration result objects
+├── Jobs/                          Queued call and Telegram processing
+├── Models/                        Calls, integrations, providers, and billing
+├── Services/IntegrationProcess/   Provider-specific normalization workflows
+├── Services/OpenAi/               Transcription and conversation analysis
+├── Services/Telegram/             Telegram notifications and payment callbacks
+└── Services/{Provider}/            Low-level provider API clients
+```
 
-## Contributing
+## Local setup
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Requirements
 
-## Code of Conduct
+- PHP 8.2 or newer
+- Composer
+- MySQL or MariaDB
+- Node.js and npm
+- Python 3 with `requests` and `aiogram`
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Installation
 
-## Security Vulnerabilities
+```bash
+git clone https://github.com/sunnbroi/voice2ai-multi-provider-telephony-integration.git
+cd voice2ai-multi-provider-telephony-integration
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+composer install
+npm ci
+python -m pip install requests aiogram
 
-## License
+cp .env.example .env
+php artisan key:generate
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Create a database and configure the `DB_*` values in `.env`, then run:
+
+```bash
+php artisan migrate --seed
+php artisan storage:link
+npm run build
+```
+
+Create an application user before signing in. For example:
+
+```bash
+php artisan tinker
+```
+
+```php
+App\Models\User::create([
+    'name' => 'Admin',
+    'email' => 'admin@example.com',
+    'password' => bcrypt('change-this-password'),
+]);
+```
+
+Add the required OpenAI and Telegram values to `.env`. Telephony credentials are configured per integration in the application dashboard.
+
+### Run the application
+
+Use separate terminals for the web server, queue worker, and local scheduler:
+
+```bash
+php artisan serve
+php artisan queue:work --tries=3
+php artisan schedule:work
+```
+
+For frontend development, run:
+
+```bash
+npm run dev
+```
+
+In production, configure a cron entry that runs `php artisan schedule:run` every minute and keep the queue worker under a process manager.
+
+## Environment variables
+
+The main application-level settings are:
+
+| Variable | Purpose |
+|---|---|
+| `APP_DOMAIN` | Domain used by the web routes |
+| `DB_*` | Database connection |
+| `QUEUE_CONNECTION` | Queue driver; the example uses `database` |
+| `OPENAI_API_KEY` | Transcription and conversation analysis |
+| `TELEGRAM_BOT_TOKEN` | Telegram Bot API access |
+| `TELEGRAM_ADMIN_CHAT_ID` | Administrative notifications |
+| `TELEGRAM_LEADS_CHANNEL_ID` | New-lead notifications |
+| `RECORD_DOMAIN` | Public domain used for recording playback links |
+| `PHONET_VERIFY_SSL` | TLS verification for Phonet requests |
+
+Never commit a real `.env` file or provider credentials. The repository contains only a safe `.env.example` template.
+
+## Scheduled commands
+
+| Command | Schedule | Purpose |
+|---|---|---|
+| `binotel:fetch-calls` | Every minute | Import Binotel calls |
+| `binotel:fetch-recordings` | Every minute | Retry pending Binotel recordings |
+| `zadarma:fetch-calls` | Every minute | Import Zadarma calls |
+| `phonet:fetch-calls` | Every minute | Import Phonet calls |
+| `unitalk:fetch-calls` | Every minute | Import Unitalk calls |
+| `report:daily-calls` | Daily at 21:00 | Send a daily call report |
+| `recordings:clean-old` | Daily at 23:00 | Remove old recordings when disk usage is high |
+| `payment-request:integration-all` | Monthly | Prepare integration payment requests |
+
+## Tests and code style
+
+```bash
+php artisan test
+php vendor/bin/pint --test
+```
+
+To automatically format changed PHP files before a commit:
+
+```bash
+php vendor/bin/pint --dirty
+```
+
+## Security notes
+
+- Runtime secrets are excluded from Git and supplied through environment variables or per-integration configuration.
+- Login sessions protect the management dashboard.
+- Provider failures are logged, and critical integration failures can trigger administrator notifications.
+- The application validates recording paths before serving local audio files.
