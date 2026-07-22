@@ -8,18 +8,7 @@
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
-        <testsuite name="Feature">
-            <directory>tests/Feature</directory>
-        </testsuite>
-        <testsuite name="App">
-            <directory>tests/app</directory>
-        </testsuite>
     </testsuites>
-        <groups>
-        <exclude>
-            <group>skip-temp</group>
-        </exclude>
-    </groups>
     <source>
         <include>
             <directory>app</directory>

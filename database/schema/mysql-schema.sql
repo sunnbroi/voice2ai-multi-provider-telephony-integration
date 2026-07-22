@@ -184,3 +184,6 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (11,'2025_07_01_181
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (12,'2025_07_01_192050_alter_to_calls_table',6);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (13,'2025_07_08_191543_add_admin_bot_and_channel_to_users_table',7);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (14,'2025_07_10_190757_add_is_conflict_to_calls_table',8);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (15,'2025_10_15_170730_create_jobs_table',9);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (16,'2025_10_15_170745_create_cache_table',9);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (17,'2025_10_17_161025_create_failed_jobs_table',9);

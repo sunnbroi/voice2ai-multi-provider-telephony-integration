@@ -169,8 +169,38 @@ Never commit a real `.env` file or provider credentials. The repository contains
 
 ## Tests and code style
 
-```bash
+The test suite loads the MySQL schema dump, so it requires a running MySQL/MariaDB server and the `mysql` command-line client. Always use a dedicated empty test database: Laravel may reset all tables in that database.
+
+On Windows with XAMPP:
+
+1. Create an empty database named `voice2api_testing` in phpMyAdmin.
+2. Create the local environment file if it does not exist:
+
+```powershell
+Copy-Item .env.example .env
+php artisan key:generate
+```
+
+3. Configure the current PowerShell session and run the tests:
+
+```powershell
+$env:Path = "C:\xampp\mysql\bin;$env:Path"
+$env:DB_CONNECTION = "mysql"
+$env:DB_HOST = "127.0.0.1"
+$env:DB_PORT = "3306"
+$env:DB_DATABASE = "voice2api_testing"
+$env:DB_USERNAME = "root"
+$env:DB_PASSWORD = ""
+
+php artisan config:clear
 php artisan test
+```
+
+Adjust the MySQL path and credentials when your local installation differs. A successful run currently reports `8 passed (18 assertions)`. These tests use simulated provider responses and do not require live Phonet or other telephony credentials.
+
+Run the code-style check separately:
+
+```bash
 php vendor/bin/pint --test
 ```
 
