@@ -1,3 +1,5 @@
+**English** | [Русский](README.ru.md)
+
 # Voice2AI — Multi-Provider Telephony Integration
 
 A Laravel application that aggregates calls from multiple cloud telephony providers, stores call metadata and recordings in one place, analyzes conversations with OpenAI, and sends actionable notifications to Telegram.
